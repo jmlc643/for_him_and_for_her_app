@@ -22,7 +22,10 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.app.forhimandforher.R
 import com.app.forhimandforher.navigation.AppScreens
@@ -49,8 +52,20 @@ fun ChooseBusinessBodyContent(navController: NavController){
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Text(
+            "¿Con cúal negocio",
+            fontSize = 36.sp,
+            fontWeight = FontWeight.W400,
+            textAlign = TextAlign.Center
+        )
+        Text(
+            "deseas trabajar?",
+            fontSize = 36.sp,
+            fontWeight = FontWeight.W400,
+            textAlign = TextAlign.Center
+        )
         Button(onClick = {
-            navController.navigate(route = AppScreens.DashBoard.route)
+            navController.navigate(route = AppScreens.DashBoard.route + "/for-him-and-for-her")
         },
             modifier= Modifier.size(width = 400.dp, height = 150.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
@@ -64,7 +79,7 @@ fun ChooseBusinessBodyContent(navController: NavController){
         }
         Spacer(modifier = Modifier.height(24.dp))
         Button(onClick = {
-            navController.navigate(route = AppScreens.DashBoard.route)
+            navController.navigate(route = AppScreens.DashBoard.route + "/rh-novedades")
         },
             modifier= Modifier.size(width = 400.dp, height = 150.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)

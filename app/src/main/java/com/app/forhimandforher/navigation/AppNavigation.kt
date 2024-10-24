@@ -16,8 +16,12 @@ fun AppNavigation(){
         composable(route = AppScreens.ChooseBusiness.route){
             ChooseBusiness(navController)
         }
-        composable(route = AppScreens.DashBoard.route){
-            Dashboard(navController)
+        composable(route = AppScreens.DashBoard.route+"/{nameImage}",
+            arguments = listOf(navArgument(name = "nameImage"){
+                type = NavType.StringType
+            })
+        ){
+            Dashboard(navController, it.arguments?.getString("nameImage"))
         }
     }
 }
