@@ -3,7 +3,9 @@ package com.app.forhimandforher.screens
 import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -53,11 +55,15 @@ fun RegisterProductFormBodyContent(navController: NavController, nameImage: Stri
     var costo by remember { mutableStateOf("") }
     var precio by remember { mutableStateOf("") }
     var marca by remember { mutableStateOf("") }
+    var expanded by remember { mutableStateOf(false) }
+    var showDialog by remember { mutableStateOf(false) }
+    val scrollState = rememberScrollState()
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(top = 80.dp, start = 16.dp, end = 16.dp, bottom = 16.dp),
+            .padding(top = 80.dp, start = 16.dp, end = 16.dp, bottom = 16.dp)
+            .verticalScroll(scrollState),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // Imagen superior
@@ -96,8 +102,8 @@ fun RegisterProductFormBodyContent(navController: NavController, nameImage: Stri
             ) {
                 Text("Talla:", modifier = Modifier.width(100.dp))
                 ExposedDropdownMenuBox(
-                    expanded = false,
-                    onExpandedChange = { }
+                    expanded = expanded,
+                    onExpandedChange = { expanded = !expanded }
                 ) {
                     TextField(
                         value = talla,
@@ -107,13 +113,16 @@ fun RegisterProductFormBodyContent(navController: NavController, nameImage: Stri
                         modifier = Modifier.menuAnchor()
                     )
                     ExposedDropdownMenu(
-                        expanded = false,
-                        onDismissRequest = { }
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false }
                     ) {
                         listOf("S", "M", "L", "XL").forEach { option ->
                             DropdownMenuItem(
                                 text = { Text(option) },
-                                onClick = { talla = option }
+                                onClick = {
+                                    talla = option
+                                    expanded = false
+                                }
                             )
                         }
                     }
@@ -153,7 +162,7 @@ fun RegisterProductFormBodyContent(navController: NavController, nameImage: Stri
             Spacer(modifier = Modifier.width(16.dp))
 
             Button(
-                onClick = { },
+                onClick = { showDialog = true },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF2770B9)
                 ),
@@ -164,6 +173,40 @@ fun RegisterProductFormBodyContent(navController: NavController, nameImage: Stri
                 Text("Aceptar", color = Color.Black)
             }
         }
+    }
+
+    if(showDialog){
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = {
+                Text("Datos del Producto")
+            },
+            text = {
+                Column {
+                    if (nameImage.equals("for-him-and-for-her")) {
+                        Text("Modelo: $modelo")
+                        Text("Código: $codigo")
+                        Text("Talla: $talla")
+                        Text("Color: $color")
+                        Text("Cantidad: $cantidad")
+                        Text("Costo: $costo")
+                        Text("Precio: $precio")
+                    } else {
+                        Text("Marca: $marca")
+                        Text("Código: $codigo")
+                        Text("Cantidad: $cantidad")
+                        Text("Costo: $costo")
+                        Text("Precio: $precio")
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = { showDialog = false }
+                ) {
+                    Text("Cerrar")
+                }
+            })
     }
 }
 
