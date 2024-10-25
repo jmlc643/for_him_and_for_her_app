@@ -49,128 +49,137 @@ fun RegisterProductForm(navController: NavController, nameImage: String?){
 fun RegisterProductFormBodyContent(navController: NavController, nameImage: String?){
     var modelo by remember { mutableStateOf("") }
     var codigo by remember { mutableStateOf("") }
+    var nombre by remember {mutableStateOf("")}
+    var proveedor by remember { mutableStateOf("") }
     var talla by remember { mutableStateOf("S") }
     var color by remember { mutableStateOf("") }
-    var cantidad by remember { mutableStateOf("") }
-    var costo by remember { mutableStateOf("") }
-    var precio by remember { mutableStateOf("") }
+    var cantidad by remember { mutableStateOf("1") }
+    var costo by remember { mutableStateOf("0") }
+    var precio by remember { mutableStateOf("0") }
     var marca by remember { mutableStateOf("") }
     var expanded by remember { mutableStateOf(false) }
     var showDialog by remember { mutableStateOf(false) }
     val scrollState = rememberScrollState()
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(top = 80.dp, start = 16.dp, end = 16.dp, bottom = 16.dp)
-            .verticalScroll(scrollState),
-        horizontalAlignment = Alignment.CenterHorizontally
+    Box(
+        modifier = Modifier.fillMaxSize()
     ) {
-        // Imagen superior
-        val imageResource = when (nameImage) {
-            "for-him-and-for-her" -> R.drawable.for_him_and_for_her_logo
-            "rh-novedades" -> R.drawable.rh_novedades
-            else -> R.drawable.ic_launcher_foreground // Imagen por defecto
-        }
-        Image(
-            painter = painterResource(id = imageResource),
-            contentDescription = "Logo de For Him and For Her",
-            modifier = Modifier.size(width = 300.dp, height = 150.dp),
-            contentScale = ContentScale.Fit
-        )
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = 80.dp, start = 16.dp, end = 16.dp, bottom = 16.dp)
+                .verticalScroll(scrollState),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // Imagen superior
+            val imageResource = when (nameImage) {
+                "for-him-and-for-her" -> R.drawable.for_him_and_for_her_logo
+                "rh-novedades" -> R.drawable.rh_novedades
+                else -> R.drawable.ic_launcher_foreground // Imagen por defecto
+            }
+            Image(
+                painter = painterResource(id = imageResource),
+                contentDescription = "Logo de For Him and For Her",
+                modifier = Modifier.size(width = 300.dp, height = 150.dp),
+                contentScale = ContentScale.Fit
+            )
 
-        Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-        Text(
-            text = "Registrar Producto",
-            fontSize = 20.sp,
-            fontWeight = FontWeight.W400
-        )
+            Text(
+                text = "Registrar Producto",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.W400
+            )
 
-        Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-        if (nameImage.equals("for-him-and-for-her")) {
-            FormField("Modelo:", modelo) { modelo = it }
-            FormField("Código:", codigo) { codigo = it }
+            if (nameImage.equals("for-him-and-for-her")) {
+                FormField("Modelo:", modelo) { modelo = it }
+                FormField("Nombre:", nombre) { nombre = it }
+                FormField("Proveedor:", proveedor) { proveedor = it }
+                FormField("Código:", codigo) { codigo = it }
 
-            // Dropdown para Talla
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text("Talla:", modifier = Modifier.width(100.dp))
-                ExposedDropdownMenuBox(
-                    expanded = expanded,
-                    onExpandedChange = { expanded = !expanded }
+                // Dropdown para Talla
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    TextField(
-                        value = talla,
-                        onValueChange = { },
-                        readOnly = true,
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = false) },
-                        modifier = Modifier.menuAnchor()
-                    )
-                    ExposedDropdownMenu(
+                    Text("Talla:", modifier = Modifier.width(100.dp))
+                    ExposedDropdownMenuBox(
                         expanded = expanded,
-                        onDismissRequest = { expanded = false }
+                        onExpandedChange = { expanded = !expanded }
                     ) {
-                        listOf("S", "M", "L", "XL").forEach { option ->
-                            DropdownMenuItem(
-                                text = { Text(option) },
-                                onClick = {
-                                    talla = option
-                                    expanded = false
-                                }
-                            )
+                        TextField(
+                            value = talla,
+                            onValueChange = { },
+                            readOnly = true,
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = false) },
+                            modifier = Modifier.menuAnchor()
+                        )
+                        ExposedDropdownMenu(
+                            expanded = expanded,
+                            onDismissRequest = { expanded = false }
+                        ) {
+                            listOf("S", "M", "L", "XL").forEach { option ->
+                                DropdownMenuItem(
+                                    text = { Text(option) },
+                                    onClick = {
+                                        talla = option
+                                        expanded = false
+                                    }
+                                )
+                            }
                         }
                     }
                 }
+
+                FormField("Color:", color) { color = it }
+                NumberFormField("Cantidad:", cantidad) { cantidad = it }
+                DecimalFormField("Costo:", costo) { costo = it }
+                DecimalFormField("Precio:", precio) { precio = it }
+            } else {
+                FormField("Marca:", marca) { marca = it }
+                FormField("Nombre:", nombre) { nombre = it }
+                FormField("Código:", codigo) { codigo = it }
+                NumberFormField("Cantidad:", cantidad) { cantidad = it }
+                DecimalFormField("Costo:", costo) { costo = it }
+                DecimalFormField("Precio:", precio) { precio = it }
             }
 
-            FormField("Color:", color) { color = it }
-            NumberFormField("Cantidad:", cantidad) { cantidad = it }
-            DecimalFormField("Costo:", costo) { costo = it }
-            DecimalFormField("Precio:", precio) { precio = it }
-        } else {
-            FormField("Marca:", marca) { marca = it }
-            FormField("Código:", codigo) { codigo = it }
-            NumberFormField("Cantidad:", cantidad) { cantidad = it }
-            DecimalFormField("Costo:", costo) { costo = it }
-            DecimalFormField("Precio:", precio) { precio = it }
-        }
+            Spacer(modifier = Modifier.height(32.dp))
 
-        Spacer(modifier = Modifier.height(32.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center
-        ) {
-            Button(
-                onClick = { navController.popBackStack() },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFF889A7)
-                ),
-                modifier = Modifier
-                    .width(120.dp)
-                    .height(48.dp)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
             ) {
-                Text("Regresar", color = Color.Black)
-            }
+                Button(
+                    onClick = { navController.popBackStack() },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFF889A7)
+                    ),
+                    modifier = Modifier
+                        .width(120.dp)
+                        .height(48.dp)
+                ) {
+                    Text("Regresar", color = Color.Black)
+                }
 
-            Spacer(modifier = Modifier.width(16.dp))
+                Spacer(modifier = Modifier.width(16.dp))
 
-            Button(
-                onClick = { showDialog = true },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF2770B9)
-                ),
-                modifier = Modifier
-                    .width(120.dp)
-                    .height(48.dp)
-            ) {
-                Text("Aceptar", color = Color.Black)
+                Button(
+                    onClick = { showDialog = true },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF2770B9)
+                    ),
+                    modifier = Modifier
+                        .width(120.dp)
+                        .height(48.dp)
+                ) {
+                    Text("Aceptar", color = Color.Black)
+                }
             }
         }
     }
@@ -185,6 +194,8 @@ fun RegisterProductFormBodyContent(navController: NavController, nameImage: Stri
                 Column {
                     if (nameImage.equals("for-him-and-for-her")) {
                         Text("Modelo: $modelo")
+                        Text("Nombre: $nombre")
+                        Text("Proveedor: $proveedor")
                         Text("Código: $codigo")
                         Text("Talla: $talla")
                         Text("Color: $color")
@@ -193,6 +204,7 @@ fun RegisterProductFormBodyContent(navController: NavController, nameImage: Stri
                         Text("Precio: $precio")
                     } else {
                         Text("Marca: $marca")
+                        Text("Nombre: $nombre")
                         Text("Código: $codigo")
                         Text("Cantidad: $cantidad")
                         Text("Costo: $costo")
