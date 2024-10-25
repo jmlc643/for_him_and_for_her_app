@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -27,6 +28,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
@@ -86,6 +88,7 @@ fun DashboardBodyContent(navController: NavController, nameImage: String?){
         ) {
             Button(
                 onClick = { },
+                shape = RectangleShape,
                 modifier = Modifier
                     .width(140.dp)
                     .height(130.dp)
@@ -99,13 +102,14 @@ fun DashboardBodyContent(navController: NavController, nameImage: String?){
 
             Button(
                 onClick = { },
+                shape = RectangleShape,
                 modifier = Modifier
                     .width(140.dp)
                     .height(130.dp)
                     .border(1.dp, Color.Black),
                 colors = ButtonDefaults.buttonColors(containerColor = Color.White)
             ) {
-                Text("Ver Productos", color = Color.Black, textAlign = TextAlign.Center)
+                    Text("Ver Productos", color = Color.Black, textAlign = TextAlign.Center)
             }
         }
 
@@ -118,6 +122,7 @@ fun DashboardBodyContent(navController: NavController, nameImage: String?){
         ) {
             Button(
                 onClick = { },
+                shape = RectangleShape,
                 modifier = Modifier
                     .width(140.dp)
                     .height(130.dp)
@@ -131,6 +136,7 @@ fun DashboardBodyContent(navController: NavController, nameImage: String?){
 
             Button(
                 onClick = { },
+                shape = RectangleShape,
                 modifier = Modifier
                     .width(140.dp)
                     .height(130.dp)

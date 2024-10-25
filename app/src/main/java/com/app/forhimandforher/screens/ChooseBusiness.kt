@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -64,10 +65,12 @@ fun ChooseBusinessBodyContent(navController: NavController){
             fontWeight = FontWeight.W400,
             textAlign = TextAlign.Center
         )
+        Spacer(modifier = Modifier.height(20.dp))
         Button(onClick = {
             navController.navigate(route = AppScreens.DashBoard.route + "/for-him-and-for-her")
         },
-            modifier= Modifier.size(width = 400.dp, height = 150.dp),
+            shape = RectangleShape,
+            modifier= Modifier.size(width = 400.dp, height = 200.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
         ){
             Image(
@@ -81,7 +84,8 @@ fun ChooseBusinessBodyContent(navController: NavController){
         Button(onClick = {
             navController.navigate(route = AppScreens.DashBoard.route + "/rh-novedades")
         },
-            modifier= Modifier.size(width = 400.dp, height = 150.dp),
+            shape = RectangleShape,
+            modifier= Modifier.size(width = 400.dp, height = 200.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
         ){
             Image(
