@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -35,6 +34,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.app.forhimandforher.R
+import com.app.forhimandforher.navigation.AppScreens
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -87,7 +87,7 @@ fun DashboardBodyContent(navController: NavController, nameImage: String?){
             horizontalArrangement = Arrangement.Center
         ) {
             Button(
-                onClick = { },
+                onClick = { navController.navigate(route = AppScreens.RegisterProductForm.route + "/"+nameImage) },
                 shape = RectangleShape,
                 modifier = Modifier
                     .width(140.dp)

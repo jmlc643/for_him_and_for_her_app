@@ -8,6 +8,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.app.forhimandforher.screens.ChooseBusiness
 import com.app.forhimandforher.screens.Dashboard
+import com.app.forhimandforher.screens.RegisterProductForm
 
 @Composable
 fun AppNavigation(){
@@ -22,6 +23,13 @@ fun AppNavigation(){
             })
         ){
             Dashboard(navController, it.arguments?.getString("nameImage"))
+        }
+        composable(route = AppScreens.RegisterProductForm.route+"/{nameImage}",
+            arguments = listOf(navArgument(name = "nameImage"){
+                type = NavType.StringType
+            })
+        ){
+            RegisterProductForm(navController, it.arguments?.getString("nameImage"))
         }
     }
 }
