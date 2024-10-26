@@ -9,10 +9,12 @@ import androidx.navigation.navArgument
 import com.app.forhimandforher.screens.ChooseBusiness
 import com.app.forhimandforher.screens.Dashboard
 import com.app.forhimandforher.screens.RegisterProductForm
+import com.app.forhimandforher.viewmodels.ProductViewModel
 
 @Composable
 fun AppNavigation(){
     val navController = rememberNavController()
+    val viewModel = ProductViewModel()
     NavHost(navController = navController, startDestination = AppScreens.ChooseBusiness.route){
         composable(route = AppScreens.ChooseBusiness.route){
             ChooseBusiness(navController)
@@ -29,7 +31,7 @@ fun AppNavigation(){
                 type = NavType.StringType
             })
         ){
-            RegisterProductForm(navController, it.arguments?.getString("nameImage"))
+            RegisterProductForm(navController, it.arguments?.getString("nameImage"), viewModel)
         }
     }
 }

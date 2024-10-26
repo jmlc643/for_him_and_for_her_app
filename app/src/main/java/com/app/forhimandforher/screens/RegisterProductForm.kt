@@ -24,15 +24,12 @@ import androidx.navigation.NavController
 import com.app.forhimandforher.R
 import com.app.forhimandforher.models.product.CreateProductFHAH
 import com.app.forhimandforher.models.product.CreateProductRH
-import com.app.forhimandforher.services.RetrofitClient
-import com.app.forhimandforher.viewmodels.Message
 import com.app.forhimandforher.viewmodels.ProductViewModel
-import kotlinx.coroutines.launch
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RegisterProductForm(navController: NavController, nameImage: String?){
+fun RegisterProductForm(navController: NavController, nameImage: String?, viewModel: ProductViewModel){
     Scaffold (topBar = {
         TopAppBar(
             title = {
@@ -46,13 +43,13 @@ fun RegisterProductForm(navController: NavController, nameImage: String?){
             }
             })
     }) {
-        RegisterProductFormBodyContent(navController, nameImage)
+        RegisterProductFormBodyContent(navController, nameImage, viewModel)
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RegisterProductFormBodyContent(navController: NavController, nameImage: String?){
+fun RegisterProductFormBodyContent(navController: NavController, nameImage: String?, viewModel: ProductViewModel){
 
     var modelo by remember { mutableStateOf("") }
     var nombre by remember { mutableStateOf("") }
@@ -63,106 +60,10 @@ fun RegisterProductFormBodyContent(navController: NavController, nameImage: Stri
     var cantidad by remember { mutableStateOf("1") }
     var costo by remember { mutableStateOf("0") }
     var precio by remember { mutableStateOf("0") }
+    var marca by remember { mutableStateOf("") }
     var showDialog by remember { mutableStateOf(false) }
-    var isLoading by remember { mutableStateOf(false) }
-    var message by remember { mutableStateOf<Message?>(null) }
-
-    val scope = rememberCoroutineScope()
-    val viewModel = remember { ProductViewModel() }
 
     val isForHimAndForHer = nameImage == "for-him-and-for-her"
-
-    fun validateFields(): Boolean {
-        return when {
-            nameImage == "for-him-and-for-her" -> {
-                modelo.isNotBlank() &&
-                        nombre.isNotBlank() &&
-                        codigo.isNotBlank() &&
-                        proveedor.isNotBlank() &&
-                        color.isNotBlank() &&
-                        cantidad.toIntOrNull() != null &&
-                        costo.toDoubleOrNull() != null &&
-                        precio.toDoubleOrNull() != null
-            }
-            else -> {
-                nombre.isNotBlank() &&
-                        codigo.isNotBlank() &&
-                        cantidad.toIntOrNull() != null &&
-                        costo.toDoubleOrNull() != null &&
-                        precio.toDoubleOrNull() != null
-            }
-        }
-    }
-
-    fun createProduct() {
-        if (!validateFields()) {
-            message = Message.Error("Por favor, complete todos los campos correctamente")
-            return
-        }
-
-        scope.launch {
-            isLoading = true
-            message = null
-            try {
-                if (nameImage == "for-him-and-for-her") {
-                    val product = CreateProductFHAH(
-                        model = modelo.trim(),
-                        code = codigo.trim(),
-                        name = nombre.trim(),
-                        supplierName = proveedor.trim(),
-                        size = talla,
-                        color = color.trim(),
-                        quantity = cantidad.toIntOrNull() ?: 1,
-                        purchasePrice = costo.toDoubleOrNull() ?: 0.0,
-                        salesPrice = precio.toDoubleOrNull() ?: 0.0
-                    )
-                    val response = RetrofitClient.productApiService.createProductFHAH(product)
-                    if (response.success) {
-                        message = Message.Success("Producto registrado exitosamente")
-                        showDialog = true
-                        // Limpiar campos después de un registro exitoso
-                        modelo = ""
-                        nombre = ""
-                        codigo = ""
-                        proveedor = ""
-                        talla = "S"
-                        color = ""
-                        cantidad = "1"
-                        costo = "0.0"
-                        precio = "0.0"
-                    } else {
-                        message = Message.Error(response.message)
-                    }
-                } else {
-                    val product = CreateProductRH(
-                        brandName = nombre.trim(),
-                        code = codigo.trim(),
-                        name = nombre.trim(),
-                        quantity = cantidad.toIntOrNull() ?: 1,
-                        purchasePrice = costo.toDoubleOrNull() ?: 0.0,
-                        salesPrice = precio.toDoubleOrNull() ?: 0.0
-                    )
-                    val response = RetrofitClient.productApiService.createProductRH(product)
-                    if (response.success) {
-                        message = Message.Success("Producto registrado exitosamente")
-                        showDialog = true
-                        // Limpiar campos después de un registro exitoso
-                        nombre = ""
-                        codigo = ""
-                        cantidad = "1"
-                        costo = "0.0"
-                        precio = "0.0"
-                    } else {
-                        message = Message.Error(response.message)
-                    }
-                }
-            } catch (e: Exception) {
-                message = Message.Error("Error: ${e.message}")
-            } finally {
-                isLoading = false
-            }
-        }
-    }
 
 
     Box(
@@ -202,26 +103,22 @@ fun RegisterProductFormBodyContent(navController: NavController, nameImage: Stri
                 FormField(
                     value = modelo,
                     onValueChange = { modelo = it },
-                    label = "Modelo",
-                    isError = modelo.isBlank()
+                    label = "Modelo"
                 )
                 FormField(
                     value = nombre,
                     onValueChange = { nombre = it },
-                    label = "Nombre",
-                    isError = nombre.isBlank()
+                    label = "Nombre"
                 )
                 FormField(
                     value = proveedor,
                     onValueChange = { proveedor = it },
-                    label = "Proveedor",
-                    isError = proveedor.isBlank()
+                    label = "Proveedor"
                 )
                 FormField(
                     value = codigo,
                     onValueChange = { codigo = it },
-                    label = "Código",
-                    isError = codigo.isBlank()
+                    label = "Código"
                 )
 
                 var expanded by remember { mutableStateOf(false) }
@@ -258,85 +155,53 @@ fun RegisterProductFormBodyContent(navController: NavController, nameImage: Stri
                 FormField(
                     value = color,
                     onValueChange = { color = it },
-                    label = "Color",
-                    isError = color.isBlank()
+                    label = "Color"
                 )
-                FormField(
+                NumberFormField(
                     value = cantidad,
                     onValueChange = { cantidad = it },
-                    label = "Cantidad",
-                    keyboardType = KeyboardType.Number,
-                    isError = cantidad.toIntOrNull() == null
+                    label = "Cantidad"
                 )
-                FormField(
+                DecimalFormField(
                     value = costo,
                     onValueChange = { costo = it },
-                    label = "Costo",
-                    keyboardType = KeyboardType.Decimal,
-                    isError = costo.toDoubleOrNull() == null
+                    label = "Costo"
                 )
-                FormField(
+                DecimalFormField(
                     value = precio,
                     onValueChange = { precio = it },
-                    label = "Precio",
-                    keyboardType = KeyboardType.Decimal,
-                    isError = precio.toDoubleOrNull() == null
+                    label = "Precio"
                 )
             } else {
+                FormField(
+                    value = marca,
+                    onValueChange = { marca = it },
+                    label = "Marca",
+                )
                 FormField(
                     value = nombre,
                     onValueChange = { nombre = it },
                     label = "Nombre",
-                    isError = nombre.isBlank()
                 )
                 FormField(
                     value = codigo,
                     onValueChange = { codigo = it },
                     label = "Código",
-                    isError = codigo.isBlank()
                 )
-                FormField(
+                NumberFormField(
                     value = cantidad,
                     onValueChange = { cantidad = it },
-                    label = "Cantidad",
-                    keyboardType = KeyboardType.Number,
-                    isError = cantidad.toIntOrNull() == null
+                    label = "Cantidad"
                 )
-                FormField(
+                DecimalFormField(
                     value = costo,
                     onValueChange = { costo = it },
-                    label = "Costo",
-                    keyboardType = KeyboardType.Decimal,
-                    isError = costo.toDoubleOrNull() == null
+                    label = "Costo"
                 )
-                FormField(
+                DecimalFormField(
                     value = precio,
                     onValueChange = { precio = it },
-                    label = "Precio",
-                    keyboardType = KeyboardType.Decimal,
-                    isError = precio.toDoubleOrNull() == null
-                )
-            }
-
-            if (isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier
-                        .align(Alignment.CenterHorizontally)
-                        .padding(16.dp)
-                )
-            }
-
-            message?.let {
-                Text(
-                    text = when (it) {
-                        is Message.Success -> it.message
-                        is Message.Error -> it.message
-                    },
-                    color = when (it) {
-                        is Message.Success -> Color(0xFF22C55E)
-                        is Message.Error -> Color(0xFFEF4444)
-                    },
-                    modifier = Modifier.padding(vertical = 8.dp)
+                    label = "Precio"
                 )
             }
 
@@ -359,8 +224,35 @@ fun RegisterProductFormBodyContent(navController: NavController, nameImage: Stri
                 }
 
                 Button(
-                    onClick = { createProduct() },
-                    enabled = !isLoading && validateFields(),
+                    onClick = {
+                        if(isForHimAndForHer){
+                            viewModel.createProductFHAH(
+                                CreateProductFHAH(
+                                    code = codigo,
+                                    purchasePrice = costo.toDouble(),
+                                    name = nombre,
+                                    model = modelo,
+                                    salesPrice = precio.toDouble(),
+                                    quantity = cantidad.toInt(),
+                                    supplierName = proveedor,
+                                    size = talla,
+                                    color = color
+                                )
+                            )
+                        } else{
+                            viewModel.createProductRH(
+                                CreateProductRH(
+                                    code = codigo,
+                                    purchasePrice = costo.toDouble(),
+                                    name = nombre,
+                                    brandName = marca,
+                                    salesPrice = precio.toDouble(),
+                                    quantity = cantidad.toInt()
+                                )
+                            )
+                        }
+                        showDialog = true
+                    },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFF2770B9)
                     ),
@@ -400,7 +292,19 @@ fun RegisterProductFormBodyContent(navController: NavController, nameImage: Stri
                 }
             },
             confirmButton = {
-                TextButton(onClick = { showDialog = false }) {
+                TextButton(onClick = {
+                    showDialog = false
+                    codigo = ""
+                    costo = "0"
+                    nombre = ""
+                    modelo = ""
+                    precio = "0"
+                    cantidad = "0"
+                    proveedor = ""
+                    talla = ""
+                    color = ""
+                    marca = ""
+                }) {
                     Text("Cerrar")
                 }
             }
@@ -414,7 +318,6 @@ private fun FormField(
     onValueChange: (String) -> Unit,
     label: String,
     keyboardType: KeyboardType = KeyboardType.Text,
-    isError: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     TextField(
@@ -430,7 +333,53 @@ private fun FormField(
             focusedContainerColor = Color(0xFFF8FAFC),
             errorContainerColor = Color(0xFFFEE2E2)
         ),
-        isError = isError,
         singleLine = true
     )
+}
+
+@Composable
+private fun NumberFormField(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(label, modifier = Modifier.width(100.dp))
+        TextField(
+            value = value,
+            onValueChange = { if (it.all { char -> char.isDigit() }) onValueChange(it) },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+}
+
+@Composable
+private fun DecimalFormField(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth()
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(label, modifier = Modifier.width(100.dp))
+        TextField(
+            value = value,
+            onValueChange = {
+                if (it.isEmpty() || it.matches(Regex("^\\d*\\.?\\d*$"))) onValueChange(
+                    it
+                )
+            },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
 }
