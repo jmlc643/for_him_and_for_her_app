@@ -72,6 +72,99 @@ fun RegisterProductFormBodyContent(navController: NavController, nameImage: Stri
 
     val isForHimAndForHer = nameImage == "for-him-and-for-her"
 
+    fun validateFields(): Boolean {
+        return when {
+            nameImage == "for-him-and-for-her" -> {
+                modelo.isNotBlank() &&
+                        nombre.isNotBlank() &&
+                        codigo.isNotBlank() &&
+                        proveedor.isNotBlank() &&
+                        color.isNotBlank() &&
+                        cantidad.toIntOrNull() != null &&
+                        costo.toDoubleOrNull() != null &&
+                        precio.toDoubleOrNull() != null
+            }
+            else -> {
+                nombre.isNotBlank() &&
+                        codigo.isNotBlank() &&
+                        cantidad.toIntOrNull() != null &&
+                        costo.toDoubleOrNull() != null &&
+                        precio.toDoubleOrNull() != null
+            }
+        }
+    }
+
+    fun createProduct() {
+        if (!validateFields()) {
+            message = Message.Error("Por favor, complete todos los campos correctamente")
+            return
+        }
+
+        scope.launch {
+            isLoading = true
+            message = null
+            try {
+                if (nameImage == "for-him-and-for-her") {
+                    val product = CreateProductFHAH(
+                        model = modelo.trim(),
+                        code = codigo.trim(),
+                        name = nombre.trim(),
+                        supplierName = proveedor.trim(),
+                        size = talla,
+                        color = color.trim(),
+                        quantity = cantidad.toIntOrNull() ?: 1,
+                        purchasePrice = costo.toDoubleOrNull() ?: 0.0,
+                        salesPrice = precio.toDoubleOrNull() ?: 0.0
+                    )
+                    val response = RetrofitClient.productApiService.createProductFHAH(product)
+                    if (response.success) {
+                        message = Message.Success("Producto registrado exitosamente")
+                        showDialog = true
+                        // Limpiar campos después de un registro exitoso
+                        modelo = ""
+                        nombre = ""
+                        codigo = ""
+                        proveedor = ""
+                        talla = "S"
+                        color = ""
+                        cantidad = "1"
+                        costo = "0.0"
+                        precio = "0.0"
+                    } else {
+                        message = Message.Error(response.message)
+                    }
+                } else {
+                    val product = CreateProductRH(
+                        brandName = nombre.trim(),
+                        code = codigo.trim(),
+                        name = nombre.trim(),
+                        quantity = cantidad.toIntOrNull() ?: 1,
+                        purchasePrice = costo.toDoubleOrNull() ?: 0.0,
+                        salesPrice = precio.toDoubleOrNull() ?: 0.0
+                    )
+                    val response = RetrofitClient.productApiService.createProductRH(product)
+                    if (response.success) {
+                        message = Message.Success("Producto registrado exitosamente")
+                        showDialog = true
+                        // Limpiar campos después de un registro exitoso
+                        nombre = ""
+                        codigo = ""
+                        cantidad = "1"
+                        costo = "0.0"
+                        precio = "0.0"
+                    } else {
+                        message = Message.Error(response.message)
+                    }
+                }
+            } catch (e: Exception) {
+                message = Message.Error("Error: ${e.message}")
+            } finally {
+                isLoading = false
+            }
+        }
+    }
+
+
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -109,22 +202,26 @@ fun RegisterProductFormBodyContent(navController: NavController, nameImage: Stri
                 FormField(
                     value = modelo,
                     onValueChange = { modelo = it },
-                    label = "Modelo"
+                    label = "Modelo",
+                    isError = modelo.isBlank()
                 )
                 FormField(
                     value = nombre,
                     onValueChange = { nombre = it },
-                    label = "Nombre"
+                    label = "Nombre",
+                    isError = nombre.isBlank()
                 )
                 FormField(
                     value = proveedor,
                     onValueChange = { proveedor = it },
-                    label = "Proveedor"
+                    label = "Proveedor",
+                    isError = proveedor.isBlank()
                 )
                 FormField(
                     value = codigo,
                     onValueChange = { codigo = it },
-                    label = "Código"
+                    label = "Código",
+                    isError = codigo.isBlank()
                 )
 
                 var expanded by remember { mutableStateOf(false) }
@@ -161,58 +258,66 @@ fun RegisterProductFormBodyContent(navController: NavController, nameImage: Stri
                 FormField(
                     value = color,
                     onValueChange = { color = it },
-                    label = "Color"
+                    label = "Color",
+                    isError = color.isBlank()
                 )
                 FormField(
                     value = cantidad,
                     onValueChange = { cantidad = it },
                     label = "Cantidad",
-                    keyboardType = KeyboardType.Number
+                    keyboardType = KeyboardType.Number,
+                    isError = cantidad.toIntOrNull() == null
                 )
                 FormField(
                     value = costo,
                     onValueChange = { costo = it },
                     label = "Costo",
-                    keyboardType = KeyboardType.Decimal
+                    keyboardType = KeyboardType.Decimal,
+                    isError = costo.toDoubleOrNull() == null
                 )
                 FormField(
                     value = precio,
                     onValueChange = { precio = it },
                     label = "Precio",
-                    keyboardType = KeyboardType.Decimal
+                    keyboardType = KeyboardType.Decimal,
+                    isError = precio.toDoubleOrNull() == null
                 )
             } else {
                 FormField(
                     value = nombre,
                     onValueChange = { nombre = it },
-                    label = "Nombre"
+                    label = "Nombre",
+                    isError = nombre.isBlank()
                 )
                 FormField(
                     value = codigo,
                     onValueChange = { codigo = it },
-                    label = "Código"
+                    label = "Código",
+                    isError = codigo.isBlank()
                 )
                 FormField(
                     value = cantidad,
                     onValueChange = { cantidad = it },
                     label = "Cantidad",
-                    keyboardType = KeyboardType.Number
+                    keyboardType = KeyboardType.Number,
+                    isError = cantidad.toIntOrNull() == null
                 )
                 FormField(
                     value = costo,
                     onValueChange = { costo = it },
                     label = "Costo",
-                    keyboardType = KeyboardType.Decimal
+                    keyboardType = KeyboardType.Decimal,
+                    isError = costo.toDoubleOrNull() == null
                 )
                 FormField(
                     value = precio,
                     onValueChange = { precio = it },
                     label = "Precio",
-                    keyboardType = KeyboardType.Decimal
+                    keyboardType = KeyboardType.Decimal,
+                    isError = precio.toDoubleOrNull() == null
                 )
             }
 
-            // Mensajes y estado
             if (isLoading) {
                 CircularProgressIndicator(
                     modifier = Modifier
@@ -254,55 +359,8 @@ fun RegisterProductFormBodyContent(navController: NavController, nameImage: Stri
                 }
 
                 Button(
-                    onClick = {
-                        scope.launch {
-                            isLoading = true
-                            message = null
-                            try {
-                                if (nameImage == "for-him-and-for-her") {
-                                    val product = CreateProductFHAH(
-                                        model = modelo,
-                                        code = codigo,
-                                        name = nombre,
-                                        supplierName = proveedor,
-                                        size = talla,
-                                        color = color,
-                                        quantity = cantidad.toIntOrNull() ?: 1,
-                                        purchasePrice = costo.toDoubleOrNull() ?: 0.0,
-                                        salesPrice = precio.toDoubleOrNull() ?: 0.0
-                                    )
-                                    val response = RetrofitClient.productApiService.createProductFHAH(product)
-                                    if (response.success) {
-                                        message = Message.Success("Producto registrado exitosamente")
-                                        showDialog = true
-                                    } else {
-                                        message = Message.Error(response.message)
-                                    }
-                                } else {
-                                    val product = CreateProductRH(
-                                        brandName = nombre,
-                                        code = codigo,
-                                        name = nombre,
-                                        quantity = cantidad.toIntOrNull() ?: 1,
-                                        purchasePrice = costo.toDoubleOrNull() ?: 0.0,
-                                        salesPrice = precio.toDoubleOrNull() ?: 0.0
-                                    )
-                                    val response = RetrofitClient.productApiService.createProductRH(product)
-                                    if (response.success) {
-                                        message = Message.Success("Producto registrado exitosamente")
-                                        showDialog = true
-                                    } else {
-                                        message = Message.Error(response.message)
-                                    }
-                                }
-                            } catch (e: Exception) {
-                                message = Message.Error("Error: ${e.message}")
-                            } finally {
-                                isLoading = false
-                            }
-                        }
-                    },
-                    enabled = !isLoading,
+                    onClick = { createProduct() },
+                    enabled = !isLoading && validateFields(),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFF2770B9)
                     ),
@@ -352,12 +410,13 @@ fun RegisterProductFormBodyContent(navController: NavController, nameImage: Stri
 
 @Composable
 private fun FormField(
-    label: String,
     value: String,
     onValueChange: (String) -> Unit,
+    label: String,
     keyboardType: KeyboardType = KeyboardType.Text,
+    isError: Boolean = false,
     modifier: Modifier = Modifier
-)  {
+) {
     TextField(
         value = value,
         onValueChange = onValueChange,
@@ -368,8 +427,10 @@ private fun FormField(
             .padding(vertical = 8.dp),
         colors = TextFieldDefaults.colors(
             unfocusedContainerColor = Color(0xFFF8FAFC),
-            focusedContainerColor = Color(0xFFF8FAFC)
+            focusedContainerColor = Color(0xFFF8FAFC),
+            errorContainerColor = Color(0xFFFEE2E2)
         ),
+        isError = isError,
         singleLine = true
     )
 }
