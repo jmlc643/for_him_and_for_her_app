@@ -22,6 +22,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.app.forhimandforher.R
+import com.app.forhimandforher.models.product.CreateProductFHAH
+import com.app.forhimandforher.models.product.CreateProductRH
+import com.app.forhimandforher.services.RetrofitClient
+import com.app.forhimandforher.viewmodels.Message
+import com.app.forhimandforher.viewmodels.ProductViewModel
+import kotlinx.coroutines.launch
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -47,19 +53,24 @@ fun RegisterProductForm(navController: NavController, nameImage: String?){
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterProductFormBodyContent(navController: NavController, nameImage: String?){
+
     var modelo by remember { mutableStateOf("") }
+    var nombre by remember { mutableStateOf("") }
     var codigo by remember { mutableStateOf("") }
-    var nombre by remember {mutableStateOf("")}
     var proveedor by remember { mutableStateOf("") }
     var talla by remember { mutableStateOf("S") }
     var color by remember { mutableStateOf("") }
     var cantidad by remember { mutableStateOf("1") }
     var costo by remember { mutableStateOf("0") }
     var precio by remember { mutableStateOf("0") }
-    var marca by remember { mutableStateOf("") }
-    var expanded by remember { mutableStateOf(false) }
     var showDialog by remember { mutableStateOf(false) }
-    val scrollState = rememberScrollState()
+    var isLoading by remember { mutableStateOf(false) }
+    var message by remember { mutableStateOf<Message?>(null) }
+
+    val scope = rememberCoroutineScope()
+    val viewModel = remember { ProductViewModel() }
+
+    val isForHimAndForHer = nameImage == "for-him-and-for-her"
 
     Box(
         modifier = Modifier.fillMaxSize()
@@ -68,14 +79,14 @@ fun RegisterProductFormBodyContent(navController: NavController, nameImage: Stri
             modifier = Modifier
                 .fillMaxSize()
                 .padding(top = 80.dp, start = 16.dp, end = 16.dp, bottom = 16.dp)
-                .verticalScroll(scrollState),
+                .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Imagen superior
-            val imageResource = when (nameImage) {
-                "for-him-and-for-her" -> R.drawable.for_him_and_for_her_logo
-                "rh-novedades" -> R.drawable.rh_novedades
-                else -> R.drawable.ic_launcher_foreground // Imagen por defecto
+            val imageResource = if (isForHimAndForHer) {
+                R.drawable.for_him_and_for_her_logo
+            } else {
+                R.drawable.rh_novedades
             }
             Image(
                 painter = painterResource(id = imageResource),
@@ -94,66 +105,141 @@ fun RegisterProductFormBodyContent(navController: NavController, nameImage: Stri
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            if (nameImage.equals("for-him-and-for-her")) {
-                FormField("Modelo:", modelo) { modelo = it }
-                FormField("Nombre:", nombre) { nombre = it }
-                FormField("Proveedor:", proveedor) { proveedor = it }
-                FormField("Código:", codigo) { codigo = it }
+            if (isForHimAndForHer) {
+                FormField(
+                    value = modelo,
+                    onValueChange = { modelo = it },
+                    label = "Modelo"
+                )
+                FormField(
+                    value = nombre,
+                    onValueChange = { nombre = it },
+                    label = "Nombre"
+                )
+                FormField(
+                    value = proveedor,
+                    onValueChange = { proveedor = it },
+                    label = "Proveedor"
+                )
+                FormField(
+                    value = codigo,
+                    onValueChange = { codigo = it },
+                    label = "Código"
+                )
 
-                // Dropdown para Talla
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                var expanded by remember { mutableStateOf(false) }
+                ExposedDropdownMenuBox(
+                    expanded = expanded,
+                    onExpandedChange = { expanded = !expanded }
                 ) {
-                    Text("Talla:", modifier = Modifier.width(100.dp))
-                    ExposedDropdownMenuBox(
+                    TextField(
+                        value = talla,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Talla") },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                        modifier = Modifier
+                            .menuAnchor()
+                            .fillMaxWidth()
+                    )
+                    ExposedDropdownMenu(
                         expanded = expanded,
-                        onExpandedChange = { expanded = !expanded }
+                        onDismissRequest = { expanded = false }
                     ) {
-                        TextField(
-                            value = talla,
-                            onValueChange = { },
-                            readOnly = true,
-                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = false) },
-                            modifier = Modifier.menuAnchor()
-                        )
-                        ExposedDropdownMenu(
-                            expanded = expanded,
-                            onDismissRequest = { expanded = false }
-                        ) {
-                            listOf("S", "M", "L", "XL").forEach { option ->
-                                DropdownMenuItem(
-                                    text = { Text(option) },
-                                    onClick = {
-                                        talla = option
-                                        expanded = false
-                                    }
-                                )
-                            }
+                        listOf("S", "M", "L", "XL").forEach { option ->
+                            DropdownMenuItem(
+                                text = { Text(option) },
+                                onClick = {
+                                    talla = option
+                                    expanded = false
+                                }
+                            )
                         }
                     }
                 }
 
-                FormField("Color:", color) { color = it }
-                NumberFormField("Cantidad:", cantidad) { cantidad = it }
-                DecimalFormField("Costo:", costo) { costo = it }
-                DecimalFormField("Precio:", precio) { precio = it }
+                FormField(
+                    value = color,
+                    onValueChange = { color = it },
+                    label = "Color"
+                )
+                FormField(
+                    value = cantidad,
+                    onValueChange = { cantidad = it },
+                    label = "Cantidad",
+                    keyboardType = KeyboardType.Number
+                )
+                FormField(
+                    value = costo,
+                    onValueChange = { costo = it },
+                    label = "Costo",
+                    keyboardType = KeyboardType.Decimal
+                )
+                FormField(
+                    value = precio,
+                    onValueChange = { precio = it },
+                    label = "Precio",
+                    keyboardType = KeyboardType.Decimal
+                )
             } else {
-                FormField("Marca:", marca) { marca = it }
-                FormField("Nombre:", nombre) { nombre = it }
-                FormField("Código:", codigo) { codigo = it }
-                NumberFormField("Cantidad:", cantidad) { cantidad = it }
-                DecimalFormField("Costo:", costo) { costo = it }
-                DecimalFormField("Precio:", precio) { precio = it }
+                FormField(
+                    value = nombre,
+                    onValueChange = { nombre = it },
+                    label = "Nombre"
+                )
+                FormField(
+                    value = codigo,
+                    onValueChange = { codigo = it },
+                    label = "Código"
+                )
+                FormField(
+                    value = cantidad,
+                    onValueChange = { cantidad = it },
+                    label = "Cantidad",
+                    keyboardType = KeyboardType.Number
+                )
+                FormField(
+                    value = costo,
+                    onValueChange = { costo = it },
+                    label = "Costo",
+                    keyboardType = KeyboardType.Decimal
+                )
+                FormField(
+                    value = precio,
+                    onValueChange = { precio = it },
+                    label = "Precio",
+                    keyboardType = KeyboardType.Decimal
+                )
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            // Mensajes y estado
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .padding(16.dp)
+                )
+            }
+
+            message?.let {
+                Text(
+                    text = when (it) {
+                        is Message.Success -> it.message
+                        is Message.Error -> it.message
+                    },
+                    color = when (it) {
+                        is Message.Success -> Color(0xFF22C55E)
+                        is Message.Error -> Color(0xFFEF4444)
+                    },
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+            }
 
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 16.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 Button(
                     onClick = { navController.popBackStack() },
@@ -164,13 +250,59 @@ fun RegisterProductFormBodyContent(navController: NavController, nameImage: Stri
                         .width(120.dp)
                         .height(48.dp)
                 ) {
-                    Text("Regresar", color = Color.Black)
+                    Text("Cancelar", color = Color.Black)
                 }
 
-                Spacer(modifier = Modifier.width(16.dp))
-
                 Button(
-                    onClick = { showDialog = true },
+                    onClick = {
+                        scope.launch {
+                            isLoading = true
+                            message = null
+                            try {
+                                if (nameImage == "for-him-and-for-her") {
+                                    val product = CreateProductFHAH(
+                                        model = modelo,
+                                        code = codigo,
+                                        name = nombre,
+                                        supplierName = proveedor,
+                                        size = talla,
+                                        color = color,
+                                        quantity = cantidad.toIntOrNull() ?: 1,
+                                        purchasePrice = costo.toDoubleOrNull() ?: 0.0,
+                                        salesPrice = precio.toDoubleOrNull() ?: 0.0
+                                    )
+                                    val response = RetrofitClient.productApiService.createProductFHAH(product)
+                                    if (response.success) {
+                                        message = Message.Success("Producto registrado exitosamente")
+                                        showDialog = true
+                                    } else {
+                                        message = Message.Error(response.message)
+                                    }
+                                } else {
+                                    val product = CreateProductRH(
+                                        brandName = nombre,
+                                        code = codigo,
+                                        name = nombre,
+                                        quantity = cantidad.toIntOrNull() ?: 1,
+                                        purchasePrice = costo.toDoubleOrNull() ?: 0.0,
+                                        salesPrice = precio.toDoubleOrNull() ?: 0.0
+                                    )
+                                    val response = RetrofitClient.productApiService.createProductRH(product)
+                                    if (response.success) {
+                                        message = Message.Success("Producto registrado exitosamente")
+                                        showDialog = true
+                                    } else {
+                                        message = Message.Error(response.message)
+                                    }
+                                }
+                            } catch (e: Exception) {
+                                message = Message.Error("Error: ${e.message}")
+                            } finally {
+                                isLoading = false
+                            }
+                        }
+                    },
+                    enabled = !isLoading,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFF2770B9)
                     ),
@@ -178,21 +310,19 @@ fun RegisterProductFormBodyContent(navController: NavController, nameImage: Stri
                         .width(120.dp)
                         .height(48.dp)
                 ) {
-                    Text("Aceptar", color = Color.Black)
+                    Text("Guardar", color = Color.Black)
                 }
             }
         }
     }
 
-    if(showDialog){
+    if (showDialog) {
         AlertDialog(
             onDismissRequest = { showDialog = false },
-            title = {
-                Text("Datos del Producto")
-            },
+            title = { Text("Datos del Producto") },
             text = {
                 Column {
-                    if (nameImage.equals("for-him-and-for-her")) {
+                    if (nameImage == "for-him-and-for-her") {
                         Text("Modelo: $modelo")
                         Text("Nombre: $nombre")
                         Text("Proveedor: $proveedor")
@@ -203,7 +333,6 @@ fun RegisterProductFormBodyContent(navController: NavController, nameImage: Stri
                         Text("Costo: $costo")
                         Text("Precio: $precio")
                     } else {
-                        Text("Marca: $marca")
                         Text("Nombre: $nombre")
                         Text("Código: $codigo")
                         Text("Cantidad: $cantidad")
@@ -213,12 +342,11 @@ fun RegisterProductFormBodyContent(navController: NavController, nameImage: Stri
                 }
             },
             confirmButton = {
-                TextButton(
-                    onClick = { showDialog = false }
-                ) {
+                TextButton(onClick = { showDialog = false }) {
                     Text("Cerrar")
                 }
-            })
+            }
+        )
     }
 }
 
@@ -226,64 +354,22 @@ fun RegisterProductFormBodyContent(navController: NavController, nameImage: Stri
 private fun FormField(
     label: String,
     value: String,
-    onValueChange: (String) -> Unit
-) {
-    Row(
-        modifier = Modifier
+    onValueChange: (String) -> Unit,
+    keyboardType: KeyboardType = KeyboardType.Text,
+    modifier: Modifier = Modifier
+)  {
+    TextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text(label) },
+        keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+        modifier = modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(label, modifier = Modifier.width(100.dp))
-        TextField(
-            value = value,
-            onValueChange = onValueChange,
-            modifier = Modifier.fillMaxWidth()
-        )
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun NumberFormField(
-    label: String,
-    value: String,
-    onValueChange: (String) -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(label, modifier = Modifier.width(100.dp))
-        TextField(
-            value = value,
-            onValueChange = { if (it.all { char -> char.isDigit() }) onValueChange(it) },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            modifier = Modifier.fillMaxWidth()
-        )
-    }
-}
-
-@Composable
-private fun DecimalFormField(
-    label: String,
-    value: String,
-    onValueChange: (String) -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(label, modifier = Modifier.width(100.dp))
-        TextField(
-            value = value,
-            onValueChange = { if (it.isEmpty() || it.matches(Regex("^\\d*\\.?\\d*$"))) onValueChange(it) },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-            modifier = Modifier.fillMaxWidth()
-        )
-    }
+        colors = TextFieldDefaults.colors(
+            unfocusedContainerColor = Color(0xFFF8FAFC),
+            focusedContainerColor = Color(0xFFF8FAFC)
+        ),
+        singleLine = true
+    )
 }
