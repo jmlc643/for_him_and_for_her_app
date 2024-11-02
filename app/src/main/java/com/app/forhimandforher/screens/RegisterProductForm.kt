@@ -1,7 +1,13 @@
 package com.app.forhimandforher.screens
 
 import android.annotation.SuppressLint
+import android.content.Context
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -14,6 +20,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -22,14 +29,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.app.forhimandforher.R
-import com.app.forhimandforher.models.product.CreateProductFHAH
-import com.app.forhimandforher.models.product.CreateProductRH
+import com.app.forhimandforher.models.product.create.CreateProductFHAH
+import com.app.forhimandforher.models.product.create.CreateProductRH
+import com.app.forhimandforher.navigation.AppScreens
+import com.app.forhimandforher.viewmodels.FileViewModel
 import com.app.forhimandforher.viewmodels.ProductViewModel
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RegisterProductForm(navController: NavController, nameImage: String?, viewModel: ProductViewModel){
+fun RegisterProductForm(navController: NavController, nameImage: String?, viewModel: ProductViewModel, context: Context, scannedCode: String?){
     Scaffold (topBar = {
         TopAppBar(
             title = {
@@ -43,17 +52,20 @@ fun RegisterProductForm(navController: NavController, nameImage: String?, viewMo
             }
             })
     }) {
-        RegisterProductFormBodyContent(navController, nameImage, viewModel)
+        RegisterProductFormBodyContent(navController, nameImage, viewModel, FileViewModel(), context, scannedCode)
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RegisterProductFormBodyContent(navController: NavController, nameImage: String?, viewModel: ProductViewModel){
+fun RegisterProductFormBodyContent(navController: NavController, nameImage: String?, viewModel: ProductViewModel, fileModel: FileViewModel, context: Context, scannedCode: String?){
 
     var modelo by remember { mutableStateOf("") }
     var nombre by remember { mutableStateOf("") }
     var codigo by remember { mutableStateOf("") }
+    var codigoBarras by remember { mutableStateOf(scannedCode ?: "") }
+    var foto by remember { mutableStateOf("") }
+    var tempMessage by remember { mutableStateOf<String?>(null) }
     var proveedor by remember { mutableStateOf("") }
     var talla by remember { mutableStateOf("S") }
     var color by remember { mutableStateOf("") }
@@ -65,6 +77,13 @@ fun RegisterProductFormBodyContent(navController: NavController, nameImage: Stri
 
     val isForHimAndForHer = nameImage == "for-him-and-for-her"
 
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            fileModel.prepareFilePartAndUpload(context, it)
+        }
+    }
 
     Box(
         modifier = Modifier.fillMaxSize()
@@ -73,8 +92,7 @@ fun RegisterProductFormBodyContent(navController: NavController, nameImage: Stri
             modifier = Modifier
                 .fillMaxSize()
                 .padding(top = 80.dp, start = 16.dp, end = 16.dp, bottom = 16.dp)
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .verticalScroll(rememberScrollState())
         ) {
             // Imagen superior
             val imageResource = if (isForHimAndForHer) {
@@ -82,22 +100,64 @@ fun RegisterProductFormBodyContent(navController: NavController, nameImage: Stri
             } else {
                 R.drawable.rh_novedades
             }
-            Image(
-                painter = painterResource(id = imageResource),
-                contentDescription = "Logo de For Him and For Her",
-                modifier = Modifier.size(width = 300.dp, height = 150.dp),
-                contentScale = ContentScale.Fit
-            )
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
+            ){
+                Image(
+                    painter = painterResource(id = imageResource),
+                    contentDescription = "Logo de For Him and For Her",
+                    modifier = Modifier.size(width = 300.dp, height = 150.dp),
+                    contentScale = ContentScale.Fit
+                )
+                Spacer(modifier = Modifier.height(16.dp))
 
-            Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "Registrar Producto",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.W400
+                )
 
-            Text(
-                text = "Registrar Producto",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.W400
-            )
+                Spacer(modifier = Modifier.height(24.dp))
+            }
+
+            // Mostrar el resultado de la subida o cualquier mensaje
+            fileModel.uploadResponse?.let { response ->
+                foto = response.data.path
+                tempMessage = "Archivo subido con éxito"
+                LaunchedEffect(tempMessage) {
+                    kotlinx.coroutines.delay(3000)
+                    tempMessage = null
+                }
+            } ?: fileModel.errorMessage?.let { error ->
+                Text("Error: $error")
+            }
+
+            // Mostrar el mensaje temporal si existe
+            tempMessage?.let { message ->
+                Text(message)
+            }
 
             Spacer(modifier = Modifier.height(24.dp))
+
+            Row(
+                modifier = Modifier.fillMaxSize()
+            ){
+                FormField(
+                    value = codigoBarras,
+                    onValueChange = { codigoBarras = it },
+                    label = "Código de Barras"
+                )
+                Button(
+                    onClick = {
+                        navController.navigate(route = AppScreens.BarcodeScannerScreen.route)
+                    },
+                    modifier = Modifier
+                        .width(120.dp)
+                        .height(60.dp)
+                ){
+                    Text("Escanear Código")
+                }
+            }
 
             if (isForHimAndForHer) {
                 FormField(
@@ -118,7 +178,7 @@ fun RegisterProductFormBodyContent(navController: NavController, nameImage: Stri
                 FormField(
                     value = codigo,
                     onValueChange = { codigo = it },
-                    label = "Código"
+                    label = "Código del Modelo"
                 )
 
                 var expanded by remember { mutableStateOf(false) }
@@ -165,12 +225,12 @@ fun RegisterProductFormBodyContent(navController: NavController, nameImage: Stri
                 DecimalFormField(
                     value = costo,
                     onValueChange = { costo = it },
-                    label = "Costo"
+                    label = "Precio de Compra"
                 )
                 DecimalFormField(
                     value = precio,
                     onValueChange = { precio = it },
-                    label = "Precio"
+                    label = "Precio de Venta"
                 )
             } else {
                 FormField(
@@ -183,11 +243,6 @@ fun RegisterProductFormBodyContent(navController: NavController, nameImage: Stri
                     onValueChange = { nombre = it },
                     label = "Nombre",
                 )
-                FormField(
-                    value = codigo,
-                    onValueChange = { codigo = it },
-                    label = "Código",
-                )
                 NumberFormField(
                     value = cantidad,
                     onValueChange = { cantidad = it },
@@ -196,13 +251,35 @@ fun RegisterProductFormBodyContent(navController: NavController, nameImage: Stri
                 DecimalFormField(
                     value = costo,
                     onValueChange = { costo = it },
-                    label = "Costo"
+                    label = "Precio de Compra"
                 )
                 DecimalFormField(
                     value = precio,
                     onValueChange = { precio = it },
-                    label = "Precio"
+                    label = "Precio de Venta"
                 )
+            }
+
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Button(
+                    onClick = { launcher.launch("image/*") },
+                    shape = RectangleShape,
+                    modifier = Modifier
+                        .width(300.dp)
+                        .height(150.dp)
+                        .border(1.dp, Color.Black)
+                        .background(Color.Transparent)
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally){
+                        Image(
+                            painterResource(id = R.drawable.subir_archivo),
+                            contentDescription = "Imagen de Subir Archivo",
+                            contentScale = ContentScale.Fit
+                        )
+                    }
+                }
             }
 
             Row(
@@ -236,7 +313,9 @@ fun RegisterProductFormBodyContent(navController: NavController, nameImage: Stri
                                     quantity = cantidad.toInt(),
                                     supplierName = proveedor,
                                     size = talla,
-                                    color = color
+                                    color = color,
+                                    photo = foto,
+                                    barcode = codigoBarras
                                 )
                             )
                         } else{
@@ -247,7 +326,9 @@ fun RegisterProductFormBodyContent(navController: NavController, nameImage: Stri
                                     name = nombre,
                                     brandName = marca,
                                     salesPrice = precio.toDouble(),
-                                    quantity = cantidad.toInt()
+                                    quantity = cantidad.toInt(),
+                                    photo = foto,
+                                    barcode = codigoBarras
                                 )
                             )
                         }
@@ -273,6 +354,7 @@ fun RegisterProductFormBodyContent(navController: NavController, nameImage: Stri
             text = {
                 Column {
                     if (nameImage == "for-him-and-for-her") {
+                        Text("Código de Barras: $codigoBarras")
                         Text("Modelo: $modelo")
                         Text("Nombre: $nombre")
                         Text("Proveedor: $proveedor")
@@ -283,6 +365,7 @@ fun RegisterProductFormBodyContent(navController: NavController, nameImage: Stri
                         Text("Costo: $costo")
                         Text("Precio: $precio")
                     } else {
+                        Text("Código de Barras: $codigoBarras")
                         Text("Nombre: $nombre")
                         Text("Código: $codigo")
                         Text("Cantidad: $cantidad")
@@ -304,6 +387,8 @@ fun RegisterProductFormBodyContent(navController: NavController, nameImage: Stri
                     talla = ""
                     color = ""
                     marca = ""
+                    codigoBarras = ""
+                    foto = ""
                 }) {
                     Text("Cerrar")
                 }
@@ -317,15 +402,15 @@ private fun FormField(
     value: String,
     onValueChange: (String) -> Unit,
     label: String,
-    keyboardType: KeyboardType = KeyboardType.Text,
-    modifier: Modifier = Modifier
+    keyboardType: KeyboardType = KeyboardType.Text
 ) {
     TextField(
         value = value,
         onValueChange = onValueChange,
         label = { Text(label) },
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-        modifier = modifier
+        modifier = Modifier
+            .width(200.dp)
             .fillMaxWidth()
             .padding(vertical = 8.dp),
         colors = TextFieldDefaults.colors(
@@ -366,7 +451,8 @@ private fun DecimalFormField(
     onValueChange: (String) -> Unit
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
             .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {

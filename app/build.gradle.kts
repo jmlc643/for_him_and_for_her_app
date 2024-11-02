@@ -18,6 +18,7 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+        multiDexEnabled = true
     }
 
     buildTypes {
@@ -71,4 +72,7 @@ dependencies {
     implementation(libs.converter.gson)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation (libs.kotlinx.coroutines.android)
+    implementation (libs.okhttp)
+    implementation(libs.play.services.vision)
+    implementation(libs.androidx.multidex)
 }
