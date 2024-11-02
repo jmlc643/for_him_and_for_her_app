@@ -44,7 +44,7 @@ class FileViewModel: ViewModel() {
                     }
                 }
             } catch(e: Exception){
-                _errorMessage = "Un error ha ocurrido: ${e.message}"
+                _errorMessage = "Un error ha ocurrido: ${e.message}, Causa del Error: ${e.cause}"
             }
         }
     }

@@ -92,7 +92,8 @@ fun RegisterProductFormBodyContent(navController: NavController, nameImage: Stri
             modifier = Modifier
                 .fillMaxSize()
                 .padding(top = 80.dp, start = 16.dp, end = 16.dp, bottom = 16.dp)
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Imagen superior
             val imageResource = if (isForHimAndForHer) {
@@ -100,52 +101,30 @@ fun RegisterProductFormBodyContent(navController: NavController, nameImage: Stri
             } else {
                 R.drawable.rh_novedades
             }
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally
-            ){
-                Image(
-                    painter = painterResource(id = imageResource),
-                    contentDescription = "Logo de For Him and For Her",
-                    modifier = Modifier.size(width = 300.dp, height = 150.dp),
-                    contentScale = ContentScale.Fit
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Text(
-                    text = "Registrar Producto",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.W400
-                )
-
-                Spacer(modifier = Modifier.height(24.dp))
-            }
-
-            // Mostrar el resultado de la subida o cualquier mensaje
-            fileModel.uploadResponse?.let { response ->
-                foto = response.data.path
-                tempMessage = "Archivo subido con éxito"
-                LaunchedEffect(tempMessage) {
-                    kotlinx.coroutines.delay(3000)
-                    tempMessage = null
-                }
-            } ?: fileModel.errorMessage?.let { error ->
-                Text("Error: $error")
-            }
-
-            // Mostrar el mensaje temporal si existe
-            tempMessage?.let { message ->
-                Text(message)
-            }
-
+            Image(
+                painter = painterResource(id = imageResource),
+                contentDescription = "Logo de For Him and For Her",
+                modifier = Modifier.size(width = 300.dp, height = 150.dp),
+                contentScale = ContentScale.Fit
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "Registrar Producto",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.W400
+            )
             Spacer(modifier = Modifier.height(24.dp))
-
             Row(
                 modifier = Modifier.fillMaxSize()
             ){
                 FormField(
                     value = codigoBarras,
                     onValueChange = { codigoBarras = it },
-                    label = "Código de Barras"
+                    label = "Código de Barras",
+                    modifier = Modifier
+                        .width(200.dp)
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)
                 )
                 Button(
                     onClick = {
@@ -163,22 +142,34 @@ fun RegisterProductFormBodyContent(navController: NavController, nameImage: Stri
                 FormField(
                     value = modelo,
                     onValueChange = { modelo = it },
-                    label = "Modelo"
+                    label = "Modelo",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)
                 )
                 FormField(
                     value = nombre,
                     onValueChange = { nombre = it },
-                    label = "Nombre"
+                    label = "Nombre",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)
                 )
                 FormField(
                     value = proveedor,
                     onValueChange = { proveedor = it },
-                    label = "Proveedor"
+                    label = "Proveedor",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)
                 )
                 FormField(
                     value = codigo,
                     onValueChange = { codigo = it },
-                    label = "Código del Modelo"
+                    label = "Código del Modelo",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)
                 )
 
                 var expanded by remember { mutableStateOf(false) }
@@ -215,7 +206,10 @@ fun RegisterProductFormBodyContent(navController: NavController, nameImage: Stri
                 FormField(
                     value = color,
                     onValueChange = { color = it },
-                    label = "Color"
+                    label = "Color",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)
                 )
                 NumberFormField(
                     value = cantidad,
@@ -237,11 +231,17 @@ fun RegisterProductFormBodyContent(navController: NavController, nameImage: Stri
                     value = marca,
                     onValueChange = { marca = it },
                     label = "Marca",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)
                 )
                 FormField(
                     value = nombre,
                     onValueChange = { nombre = it },
                     label = "Nombre",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)
                 )
                 NumberFormField(
                     value = cantidad,
@@ -260,26 +260,38 @@ fun RegisterProductFormBodyContent(navController: NavController, nameImage: Stri
                 )
             }
 
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally
+            Button(
+                onClick = { launcher.launch("image/*") },
+                shape = RectangleShape,
+                modifier = Modifier
+                    .width(300.dp)
+                    .height(150.dp)
+                    .border(1.dp, Color.Black)
+                    .background(Color.Transparent)
             ) {
-                Button(
-                    onClick = { launcher.launch("image/*") },
-                    shape = RectangleShape,
-                    modifier = Modifier
-                        .width(300.dp)
-                        .height(150.dp)
-                        .border(1.dp, Color.Black)
-                        .background(Color.Transparent)
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally){
-                        Image(
-                            painterResource(id = R.drawable.subir_archivo),
-                            contentDescription = "Imagen de Subir Archivo",
-                            contentScale = ContentScale.Fit
-                        )
-                    }
+                Column(horizontalAlignment = Alignment.CenterHorizontally){
+                    Image(
+                        painterResource(id = R.drawable.subir_archivo),
+                        contentDescription = "Imagen de Subir Archivo",
+                        contentScale = ContentScale.Fit
+                    )
                 }
+            }
+            // Mostrar el resultado de la subida o cualquier mensaje
+            fileModel.uploadResponse?.let { response ->
+                foto = response.data.path
+                tempMessage = "Archivo subido con éxito"
+                LaunchedEffect(tempMessage) {
+                    kotlinx.coroutines.delay(3000)
+                    tempMessage = null
+                }
+            } ?: fileModel.errorMessage?.let { error ->
+                Text("Error: $error")
+            }
+
+            // Mostrar el mensaje temporal si existe
+            tempMessage?.let { message ->
+                Text(message)
             }
 
             Row(
@@ -402,17 +414,15 @@ private fun FormField(
     value: String,
     onValueChange: (String) -> Unit,
     label: String,
-    keyboardType: KeyboardType = KeyboardType.Text
+    keyboardType: KeyboardType = KeyboardType.Text,
+    modifier: Modifier
 ) {
     TextField(
         value = value,
         onValueChange = onValueChange,
         label = { Text(label) },
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-        modifier = Modifier
-            .width(200.dp)
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
+        modifier = modifier,
         colors = TextFieldDefaults.colors(
             unfocusedContainerColor = Color(0xFFF8FAFC),
             focusedContainerColor = Color(0xFFF8FAFC),
