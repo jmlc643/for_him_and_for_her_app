@@ -81,7 +81,7 @@ fun RegisterProductFormBodyContent(navController: NavController, nameImage: Stri
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         uri?.let {
-            fileModel.prepareFilePartAndUpload(context, it)
+            fileModel.prepareFilePart(context, it)
         }
     }
 
@@ -115,7 +115,8 @@ fun RegisterProductFormBodyContent(navController: NavController, nameImage: Stri
             )
             Spacer(modifier = Modifier.height(24.dp))
             Row(
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
+                horizontalArrangement = Arrangement.SpaceEvenly
             ){
                 FormField(
                     value = codigoBarras,
@@ -278,7 +279,7 @@ fun RegisterProductFormBodyContent(navController: NavController, nameImage: Stri
                 }
             }
             // Mostrar el resultado de la subida o cualquier mensaje
-            fileModel.uploadResponse?.let { response ->
+            fileModel.resource?.let { response ->
                 foto = response.data.path
                 tempMessage = "Archivo subido con éxito"
                 LaunchedEffect(tempMessage) {
@@ -286,7 +287,7 @@ fun RegisterProductFormBodyContent(navController: NavController, nameImage: Stri
                     tempMessage = null
                 }
             } ?: fileModel.errorMessage?.let { error ->
-                Text("Error: $error")
+                tempMessage = "Error: $error"
             }
 
             // Mostrar el mensaje temporal si existe
